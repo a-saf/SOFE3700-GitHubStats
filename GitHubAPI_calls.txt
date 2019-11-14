@@ -1,0 +1,57 @@
+Users who specified their location as Ontario:
+
+https://api.github.com/search/users?q=location:ontario
+
+This query returns 30 results per page, to go to next page:
+
+https://api.github.com/search/users?q=location:ontario&page=2
+
+
+
+List of issues for a particular repo:
+
+https://api.github.com/repos/wesbos/Cobalt2-iterm/issues
+
+general format: 
+
+GET /repos/:user/:repo/issues
+
+
+List of pull requests for a particular repo:
+
+https://api.github.com/repos/wesbos/Cobalt2-iterm/pulls
+
+general format:
+
+GET /repos/:user/:repo/pulls
+
+
+List of repositories owned by a user:
+
+https://api.github.com/users/wesbos/repos
+
+general format:
+
+GET /users/:user/repos
+
+
+Get info on particular user:
+
+https://api.github.com/users/andrew8088
+
+general format:
+
+GET /users/:user
+
+
+Last year of commit activity data:
+
+GET /repos/:owner/:repo/stats/commit_activity
+
+
+
+This is another interesting one, we may want to use it:
+
+GET /repos/:owner/:repo/stats/contributors
+
+This returns additions, deletions, and commit counts per week for a repository
