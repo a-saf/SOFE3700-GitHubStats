@@ -2,5 +2,18 @@ This file is to track the problems we have faced throughout the project and how 
 
 
 Problem: Incorrect Json Format
-Why: (manybe because of the nested format)
+Why: (maybe because of the nested format)
 Resolution:
+
+Problem: Incorrect Json Format
+Why: (maybe because of the nested format)
+Resolution:
+
+Problem: github only returns the first 1000 requests on any api call
+Why: (maybe because we are just an average user making a call)
+Resolution: State in the report this limitation, we still have enough data
+
+Problem: rate limit for api calls, maximum we can grab in 1 call is 9 pages, 30 records each
+Why: (maybe because we are just an average user making a call)
+Resolution: State in the report this limitation, we still have enough data
+
