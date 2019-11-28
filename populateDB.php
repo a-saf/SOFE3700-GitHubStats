@@ -1,11 +1,14 @@
 <?php
 
+set_time_limit(86400);
+
 $servername = "localhost";
 $username = "root";
 $password = "";
 
 $userNames = array();
 $userRepos = array();
+$counter = 0;
 
 // Create connection
 $conn = new mysqli($servername, $username, $password);
@@ -21,72 +24,63 @@ $opts = [
             'method' => 'GET',
             'header' => [
                     "User-Agent: PHP" .
-                    "Authorization: token 5ed4fb9d811c7f0f84787e3ba40a35cb90ce31ce"
+                    "Authorization: token c204f10758ea4cc693e3237ab9daf8fb93c71b47"
             ]
     ]
 ];
 
 //Populate user table
 
-$url = "https://api.github.com/search/users?q=location:ontario&per_page=60";
+$url = "https://api.github.com/search/users?q=location:ontario&per_page=30";
 
+$context = stream_context_create($opts);
+$json = file_get_contents($url, false, $context);
+$json = json_decode($json, true);
 
-for ($x = 1; $x <= 5; $x++) {
+foreach($json["items"] as $item) {
 
-    $urlUsersPaginated = $url . "&page={$x}";
+    $userID = $item["id"];
+    $login = $item["login"];
+    $repo_url = $item["repos_url"];
 
-    $context = stream_context_create($opts);
-    $json = file_get_contents($urlUsersPaginated, false, $context);
-    $json = json_decode($json, true);
+    $urlUserProfile = $item["url"];
 
-    foreach($json["items"] as $item) {
+    $jsonUser = file_get_contents($urlUserProfile, false, $context);
+    $jsonUser = json_decode($jsonUser, true);
 
-        $userID = $item["id"];
-        $login = $item["login"];
-        $repo_url = $item["repos_url"];
-
-        $urlUserProfile = $item["url"];
-
-        $jsonUser = file_get_contents($urlUserProfile, false, $context);
-        $jsonUser = json_decode($jsonUser, true);
-
-        if(sizeof(explode(" ", $jsonUser["name"])) == 2) {
-            $fname = explode(" ", $jsonUser["name"])[0];
-            $lname = explode(" ", $jsonUser["name"])[1];
-        } else {
-            $fname = $jsonUser["name"];
-            $lname = NULL;
-        }
-        
-        $company = $jsonUser["company"];
-
-        $city = explode(",", $jsonUser["location"])[0];
-        $no_of_repos = $jsonUser["public_repos"];
-        $followers = $jsonUser["followers"];
-        $followings = $jsonUser["following"];
-
-        $date_created = explode("T", $jsonUser["created_at"])[0];
-        $date_updated = explode("T",$jsonUser["updated_at"])[0];
-
-
-        $sql = "INSERT INTO githubstats.user (user_id, login_name, fname, lname, 
-        repo_url, company, city, no_of_repos, followers, followings, date_created, date_updated) 
-        VALUES ('$userID', '$login', '$fname', '$lname', '$repo_url', '$company', '$city', '$no_of_repos', '$followers',
-        '$followings', '$date_created', '$date_updated')";
-
-        if ($conn->query($sql) === TRUE) {
-            echo "New record in User table created successfully<br>";
-            array_push($userNames, $login);
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-
-       sleep(3600);
+    if(sizeof(explode(" ", $jsonUser["name"])) == 2) {
+        $fname = explode(" ", $jsonUser["name"])[0];
+        $lname = explode(" ", $jsonUser["name"])[1];
+    } else {
+        $fname = $jsonUser["name"];
+        $lname = NULL;
     }
-    
+
+    $company = $jsonUser["company"];
+
+    $city = explode(",", $jsonUser["location"])[0];
+    $no_of_repos = $jsonUser["public_repos"];
+    $followers = $jsonUser["followers"];
+    $followings = $jsonUser["following"];
+
+    $date_created = explode("T", $jsonUser["created_at"])[0];
+    $date_updated = explode("T",$jsonUser["updated_at"])[0];
+
+
+    $sql = "INSERT INTO githubstats.user (user_id, login_name, fname, lname, 
+    repo_url, company, city, no_of_repos, followers, followings, date_created, date_updated) 
+    VALUES ('$userID', '$login', '$fname', '$lname', '$repo_url', '$company', '$city', '$no_of_repos', '$followers',
+    '$followings', '$date_created', '$date_updated')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "New record in User table created successfully<br>";
+        array_push($userNames, $login);
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
 }
 
-$counter = 0;
+sleep(3610);
 
 //Populate repositories table
  
@@ -94,11 +88,15 @@ for ($x = 0; $x < sizeof($userNames); $x++) {
     
     $urlRepo = "https://api.github.com/users/" . $userNames[$x] . "/repos";
 
+    $counter++;
+    if ($counter >= 59) {
+        $counter = 0;
+        sleep(3610);
+    }
+
     $context = stream_context_create($opts);
     $json = file_get_contents($urlRepo, false, $context);
     $json = json_decode($json, true);
-
-    $counter++;
 
     foreach($json as $item) {
 
@@ -108,8 +106,8 @@ for ($x = 0; $x < sizeof($userNames); $x++) {
         $repo_owner = $item["owner"]["login"];
         $no_of_forks = $item["forks"];
         $languages = $item["language"];
-        $date_created = explode("T", $jsonUser["created_at"])[0];
-        $date_updated = explode("T",$jsonUser["updated_at"])[0];
+        $date_created = explode("T", $item["created_at"])[0];
+        $date_updated = explode("T", $item["updated_at"])[0];
 
 
         $sql = "INSERT INTO githubstats.repositories (repositoryID, repo_size, repo_name, repo_owner, 
@@ -124,13 +122,7 @@ for ($x = 0; $x < sizeof($userNames); $x++) {
             echo "Error: " . $sql . "<br>" . $conn->error;
         }
     }
-
-    if ($counter <= 59) {
-        sleep(3600);
-    }
 }
-
-$counter = 0;
 
 //Populate pull request table
 
@@ -138,11 +130,15 @@ foreach($userRepos as $key => $value) {
 
     $urlRepo = "https://api.github.com/repos/" . $value . "/" . $key . "/pulls";
 
+    $counter++;
+    if ($counter >= 59) {
+        $counter = 0;
+        sleep(3610);
+    }
+
     $context = stream_context_create($opts);
     $json = file_get_contents($urlRepo, false, $context);
     $json = json_decode($json, true);
-
-    $counter++;
 
     if (empty($json)) continue;
     else {
@@ -154,8 +150,8 @@ foreach($userRepos as $key => $value) {
             $pr_state = $item["state"];
             $repo_id = $item["base"]["repo"]["id"];
             $created_at = explode("T", $item["created_at"])[0];
-            $closed_at = explode("T",$item["closed_at"])[0];
-            $merged_at = explode("T",$item["merged_at"])[0];
+            $closed_at = explode("T", $item["closed_at"])[0];
+            $merged_at = explode("T", $item["merged_at"])[0];
 
 
             $sql = "INSERT INTO githubstats.pull_request (userID, pr_id, pr_num, pr_state, repo_id, 
@@ -171,13 +167,7 @@ foreach($userRepos as $key => $value) {
         }
 
     }
-
-    if ($counter <= 59) {
-        sleep(3600);
-    }
 }
-
-$counter = 0;
 
 //Populate issues table
 
@@ -185,17 +175,28 @@ foreach($userRepos as $key => $value) {
 
     $urlIssue = "https://api.github.com/repos/" . $value . "/" . $key . "/issues";
 
+    $counter++;
+    if ($counter >= 59) {
+        $counter = 0;
+        sleep(3610);
+    }
+
     $context = stream_context_create($opts);
     $json = file_get_contents($urlIssue, false, $context);
     $json = json_decode($json, true);
-
-    $counter++;
 
     if (empty($json)) continue;
     else {
         foreach ($json as $item) {
 
             $urlRepository = $item["repository_url"];
+
+            $counter++;
+            if ($counter >= 59) {
+                $counter = 0;
+                sleep(3610);
+            }
+
             $context = stream_context_create($opts);
             $jsonRepository = file_get_contents($urlIssue, false, $context);
             $jsonRepository = json_decode($jsonRepository, true);
@@ -205,7 +206,7 @@ foreach($userRepos as $key => $value) {
             $issue_num = $item["number"];
             $issue_state = $item["state"];
             $created_at = explode("T", $item["created_at"])[0];
-            $closed_at = explode("T",$item["closed_at"])[0];
+            $closed_at = explode("T", $item["closed_at"])[0];
 
             $sql = "INSERT INTO githubstats.issues (repo_id, issue_id, issue_num, issue_state, 
             created_at, closed_at) 
@@ -220,13 +221,7 @@ foreach($userRepos as $key => $value) {
         }
 
     }
-
-    if ($counter <= 59) {
-        sleep(3600);
-    }
 }
-
-$counter = 0;
 
 //Populate commits table
 
@@ -234,17 +229,28 @@ foreach($userRepos as $key => $value) {
 
     $urlCommitActivity = "https://api.github.com/repos/" . $value . "/" . $key . "/stats/commit_activity";
 
+    $counter++;
+    if ($counter >= 59) {
+        $counter = 0;
+        sleep(3610);
+    }
+
     $context = stream_context_create($opts);
     $json = file_get_contents($urlCommitActivity, false, $context);
     $json = json_decode($json, true);
-
-    $counter++;
 
     if (empty($json)) continue;
     else {
         foreach ($json as $item) {
 
-            $urlRepository = "https://api.github.com/repos/" . $value . "/" . $key
+            $urlRepository = "https://api.github.com/repos/" . $value . "/" . $key;
+
+            $counter++;
+            if ($counter >= 59) {
+                $counter = 0;
+                sleep(3610);
+            }
+
             $context = stream_context_create($opts);
             $jsonRepository = file_get_contents($urlIssue, false, $context);
             $jsonRepository = json_decode($jsonRepository, true);
@@ -272,10 +278,6 @@ foreach($userRepos as $key => $value) {
                 echo "Error: " . $sql . "<br>" . $conn->error;
             }
         }
-    }
-
-    if ($counter <= 59) {
-        sleep(3600);
     }
 }
 
