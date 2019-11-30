@@ -31,13 +31,19 @@ $opts = [
 
 //Populate user table
 
-$url = "https://api.github.com/search/users?q=location:ontario&per_page=30";
+$url = "https://api.github.com/search/users?q=location:ontario&per_page=10";
 
 $context = stream_context_create($opts);
 $json = file_get_contents($url, false, $context);
 $json = json_decode($json, true);
 
 foreach($json["items"] as $item) {
+
+    $counter++;
+    if ($counter >= 59) {
+        $counter = 0;
+        sleep(3610);
+    }
 
     $userID = $item["id"];
     $login = $item["login"];
@@ -80,7 +86,7 @@ foreach($json["items"] as $item) {
     }
 }
 
-sleep(3610);
+//sleep(3610);
 
 //Populate repositories table
  
@@ -129,6 +135,11 @@ for ($x = 0; $x < sizeof($userNames); $x++) {
 foreach($userRepos as $key => $value) {
 
     $urlRepo = "https://api.github.com/repos/" . $value . "/" . $key . "/pulls";
+    var_dump($urlRepo);
+    $urlIssue = "https://api.github.com/repos/" . $value . "/" . $key . "/issues";
+    var_dump($urlIssue);
+    $urlCommitActivity = "https://api.github.com/repos/" . $value . "/" . $key . "/stats/commit_activity";
+    var_dump($urlCommitActivity);
 
     $counter++;
     if ($counter >= 59) {
@@ -169,17 +180,19 @@ foreach($userRepos as $key => $value) {
     }
 }
 
-//Populate issues table
-
 foreach($userRepos as $key => $value) {
 
+    $urlRepo = "https://api.github.com/repos/" . $value . "/" . $key . "/pulls";
     $urlIssue = "https://api.github.com/repos/" . $value . "/" . $key . "/issues";
+    $urlCommitActivity = "https://api.github.com/repos/" . $value . "/" . $key . "/stats/commit_activity";
 
     $counter++;
     if ($counter >= 59) {
         $counter = 0;
         sleep(3610);
     }
+    
+    // Issues
 
     $context = stream_context_create($opts);
     $json = file_get_contents($urlIssue, false, $context);
@@ -223,10 +236,10 @@ foreach($userRepos as $key => $value) {
     }
 }
 
-//Populate commits table
-
 foreach($userRepos as $key => $value) {
 
+    $urlRepo = "https://api.github.com/repos/" . $value . "/" . $key . "/pulls";
+    $urlIssue = "https://api.github.com/repos/" . $value . "/" . $key . "/issues";
     $urlCommitActivity = "https://api.github.com/repos/" . $value . "/" . $key . "/stats/commit_activity";
 
     $counter++;
@@ -234,6 +247,8 @@ foreach($userRepos as $key => $value) {
         $counter = 0;
         sleep(3610);
     }
+    
+    // Commit activity
 
     $context = stream_context_create($opts);
     $json = file_get_contents($urlCommitActivity, false, $context);
@@ -252,7 +267,7 @@ foreach($userRepos as $key => $value) {
             }
 
             $context = stream_context_create($opts);
-            $jsonRepository = file_get_contents($urlIssue, false, $context);
+            $jsonRepository = file_get_contents($urlRepository, false, $context);
             $jsonRepository = json_decode($jsonRepository, true);
 
             $repo_id = $jsonRepository["id"];
@@ -270,7 +285,7 @@ foreach($userRepos as $key => $value) {
             $sql = "INSERT INTO githubstats.commits (repo_id, total_per_week, week, Sun, 
             repo_name, Mon, Tue, Wed, Thurs, Fri, Sat) 
             VALUES ('$repo_id', '$total_per_week', '$week', '$Sun', '$repo_name', 
-            '$Mon', '$Tue', '$Wed', '$Thurs', '$Fri')";
+            '$Mon', '$Tue', '$Wed', '$Thurs', '$Fri', '$Sat')";
 
             if ($conn->query($sql) === TRUE) {
                 echo "New record in Commits table created successfully<br>";
