@@ -112,7 +112,7 @@ $con = new mysqli($host, $user, $password, $dbname, $port, $socket)
 
 <br><br>
 <p> Description: A correlated nested query </p>
-<p> Showing users who have more followers then user with login name ncschonni </p>
+<p> Showing users who have more followers then user with login name Pahimar </p>
 <br>
     
 <!--Giving Table ID to use with Javascript to parse it and use it for the Pie Chart-->
