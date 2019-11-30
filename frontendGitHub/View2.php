@@ -1,11 +1,11 @@
 <?php
 //Connection Code
 $host="127.0.0.1";
-$port=3307;
+$port=3306;
 $socket="";
 $user="root";
 $password="";
-$dbname="Project1";
+$dbname="githubstats";
 
 $con = new mysqli($host, $user, $password, $dbname, $port, $socket)
 	or die ('Could not connect to the database server' . mysqli_connect_error());
