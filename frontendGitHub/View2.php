@@ -111,7 +111,8 @@ $con = new mysqli($host, $user, $password, $dbname, $port, $socket)
 </div>
 
 <br><br>
-<p> Description: Showcases a Pie Chart of which city the Users live in and shows the Queried table to make the Pie Chart and the Users table below it </p>
+<p> Description: Nested queries with ANY or ALL operator and GROUP BY clause </p>
+<p> Select users, grouped by last name, that have more followings than all the users living in Toronto. </p>
 <br>
     
 <!--Giving Table ID to use with Javascript to parse it and use it for the Pie Chart-->
