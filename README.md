@@ -1,3 +1,46 @@
+## How To Install
+
+### Populating Database
+
+First create a database with the name "githubstats"
+
+In the sql-data-export folder you will find a file named SQL_AllTables_Export.sql
+Inside is sql code so run that file (or copy paste the contents) to create all tables with correct structure and data
+
+
+### Installing Front End
+
+First make sure xampp, wamp or any other similar service has Mysql on port 3306 and the directory of where it can run local php files is in the correct folder
+
+```php
+<?php
+//Connection Code
+$host="127.0.0.1";
+$port=3306;
+$socket="";
+$user="root";
+$password="";
+$dbname="githubstats";
+$con = new mysqli($host, $user, $password, $dbname, $port, $socket)
+	or die ('Could not connect to the database server' . mysqli_connect_error());
+//$con->close();
+?>
+```
+
+Above is the connection code found in the PHP files in this repo
+
+As you can see there is no password set and we are a root user
+
+Edit this code as needed to adjust to the setting you have on your computer
+
+After setup is done run index.php with local host as shown below
+
+http://localhost/index.php
+
+
+------
+------
+
 ## GitHubStats
 
 At 40 million users across the world and 100 million repositories, GitHub is one of the most popular
@@ -25,32 +68,3 @@ software development that will be implemented using tools and technologies cover
 as a database management system, database design process, SQL query language, data flow in RESTful
 web services etc. Through this, we hope to demonstrate our understanding of the course material and our
 ability to apply it in a real small-scale solution.  
-
-### Methodology & Plan:   
-
-Our group will approach this project in a step-by-step fashion, starting with developing the database
-design, retrieving data from Github using GitHub public REST API, creating and populating the database
-in SQLite, creating a presentation web layer and querying the database for statistics to display, etc. We
-will be meeting weekly to assign work for each member and discuss progress and problems. We will be
-using GitHub public REST API, SQLite with SQL, and HTML/CSS/PHP. We will be extracting GitHub
-data on commits as it is the most accurate metric of repository activity. Our project is limited to public
-repositories of users located in Ontario, Canada and their commit activity from October 2018 to October
-2019.  
-
-### Related Work:  
-
-https://github.com/marketplace/circleci  
-
-CircleCi is an application that uses Github API for project teamwork. It speeds up the test and delivery
-cycle without running your own infrastructure by showing workflow status, related jobs with the Insights
-functionality, and performance trends.  
-
-https://github.com/marketplace/zenhub  
-
-ZenHub uses Github API and integrates natively with Githubs user interface. It has a Multi-Repo Task
-Board that lets the team visualize issues and group them in epics, track dependencies and collaborate on
-product backlogs. Zenhub can also release reports, use the history of reports to detect trends to improve
-processes, increase team efficiency and measure the value delivered to end-users.
-Our project differs from the above applications because it does not focus on the functionality of a single
-repository. Instead we deliver statistical insights on user commit activity for many repositories as a
-quantification tool of trends in development process for various types of software technologies.
